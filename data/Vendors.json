@@ -1,0 +1,174 @@
+[
+  {
+    "id": "V-001",
+    "name": "SwiftCargo IN",
+    "type": "Road & Last Mile",
+    "region": "India / Europe / Japan",
+    "contact": "ops@swiftcargo.in",
+    "on_time_rate": 91,
+    "total_shipments": 312,
+    "delayed_shipments": 28,
+    "avg_delay_hours": 1.8,
+    "blame_score": 12,
+    "status": "good",
+    "monthly_performance": [
+      { "month": "Nov", "on_time_rate": 94 },
+      { "month": "Dec", "on_time_rate": 88 },
+      { "month": "Jan", "on_time_rate": 92 },
+      { "month": "Feb", "on_time_rate": 90 },
+      { "month": "Mar", "on_time_rate": 93 },
+      { "month": "Apr", "on_time_rate": 91 }
+    ],
+    "risk_routes": [],
+    "incidents": [
+      {
+        "id": "INC-001",
+        "date": "2026-03-12",
+        "shipment_id": "SH-089",
+        "leg": "Mumbai Warehouse → Mumbai Port",
+        "delay_hours": 2,
+        "reason": "traffic_congestion",
+        "vendor_fault": false,
+        "resolved": true
+      },
+      {
+        "id": "INC-002",
+        "date": "2026-02-08",
+        "shipment_id": "SH-071",
+        "leg": "Delhi Airport → Delhi Warehouse",
+        "delay_hours": 3,
+        "reason": "vehicle_breakdown",
+        "vendor_fault": true,
+        "resolved": true
+      }
+    ]
+  },
+  {
+    "id": "V-002",
+    "name": "FastFreight Shipping",
+    "type": "Sea Freight",
+    "region": "India — Middle East — Europe",
+    "contact": "ops@fastfreight.com",
+    "on_time_rate": 67,
+    "total_shipments": 198,
+    "delayed_shipments": 65,
+    "avg_delay_hours": 8.4,
+    "blame_score": 58,
+    "status": "at_risk",
+    "monthly_performance": [
+      { "month": "Nov", "on_time_rate": 78 },
+      { "month": "Dec", "on_time_rate": 71 },
+      { "month": "Jan", "on_time_rate": 69 },
+      { "month": "Feb", "on_time_rate": 65 },
+      { "month": "Mar", "on_time_rate": 62 },
+      { "month": "Apr", "on_time_rate": 67 }
+    ],
+    "risk_routes": [
+      {
+        "route": "Mumbai → Dubai",
+        "season": "Jun–Sep",
+        "on_time_rate": 51,
+        "reason": "Monsoon weather impact on Arabian Sea"
+      },
+      {
+        "route": "Port Said → Hamburg",
+        "season": "Year-round",
+        "on_time_rate": 58,
+        "reason": "Red Sea rerouting adding 3–4 days"
+      }
+    ],
+    "incidents": [
+      {
+        "id": "INC-003",
+        "date": "2026-04-10",
+        "shipment_id": "SH-141",
+        "leg": "Mumbai Port → Dubai Port",
+        "delay_hours": 11,
+        "reason": "vessel_breakdown",
+        "vendor_fault": true,
+        "resolved": true
+      },
+      {
+        "id": "INC-004",
+        "date": "2026-03-28",
+        "shipment_id": "SH-128",
+        "leg": "Colombo Hub → Rotterdam",
+        "delay_hours": 72,
+        "reason": "port_congestion",
+        "vendor_fault": false,
+        "resolved": true
+      },
+      {
+        "id": "INC-005",
+        "date": "2026-03-05",
+        "shipment_id": "SH-112",
+        "leg": "Nhava Sheva → Jebel Ali",
+        "delay_hours": 18,
+        "reason": "customs_documentation",
+        "vendor_fault": true,
+        "resolved": true
+      },
+      {
+        "id": "INC-006",
+        "date": "2026-02-14",
+        "shipment_id": "SH-099",
+        "leg": "Mumbai Port → Dubai Port",
+        "delay_hours": 9,
+        "reason": "vehicle_breakdown",
+        "vendor_fault": true,
+        "resolved": true
+      }
+    ]
+  },
+  {
+    "id": "V-003",
+    "name": "EuroLink Logistics",
+    "type": "Air Freight & European Road",
+    "region": "Europe / Southeast Asia",
+    "contact": "ops@eurolink.eu",
+    "on_time_rate": 83,
+    "total_shipments": 156,
+    "delayed_shipments": 27,
+    "avg_delay_hours": 3.2,
+    "blame_score": 31,
+    "status": "good",
+    "monthly_performance": [
+      { "month": "Nov", "on_time_rate": 85 },
+      { "month": "Dec", "on_time_rate": 79 },
+      { "month": "Jan", "on_time_rate": 84 },
+      { "month": "Feb", "on_time_rate": 82 },
+      { "month": "Mar", "on_time_rate": 86 },
+      { "month": "Apr", "on_time_rate": 83 }
+    ],
+    "risk_routes": [
+      {
+        "route": "Frankfurt → Berlin",
+        "season": "Dec–Jan",
+        "on_time_rate": 71,
+        "reason": "Winter weather delays on Autobahn"
+      }
+    ],
+    "incidents": [
+      {
+        "id": "INC-007",
+        "date": "2026-04-01",
+        "shipment_id": "SH-134",
+        "leg": "Frankfurt Airport → Berlin Warehouse",
+        "delay_hours": 5,
+        "reason": "traffic_congestion",
+        "vendor_fault": false,
+        "resolved": true
+      },
+      {
+        "id": "INC-008",
+        "date": "2026-02-22",
+        "shipment_id": "SH-104",
+        "leg": "Singapore Changi → Tokyo Narita",
+        "delay_hours": 4,
+        "reason": "customs_hold",
+        "vendor_fault": false,
+        "resolved": true
+      }
+    ]
+  }
+]
