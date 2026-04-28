@@ -711,6 +711,11 @@ body {
   }
   .sh-col-meta { display: none; }
   .sh-col-actions { border-left: none; }
+
+  .vendor-grid {
+    grid-template-columns: 1fr !important;
+  }
+
 }
 
 @media (max-width: 640px) {

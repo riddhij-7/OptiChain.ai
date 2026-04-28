@@ -32,19 +32,26 @@ function reducer(state, action) {
     }
 
     case "SET_BLAME": {
+      const { vendor_fault, vendor_id } = action.payload;
       return {
         ...state,
         blameReports: { ...state.blameReports, [action.payload.leg_id]: action.payload },
-        vendors: state.vendors.map((v) =>
-          v.id !== action.payload.vendor_id ? v : {
+        vendors: state.vendors.map((v) => {
+          if (v.id !== vendor_id) return v;
+          const newRate = vendor_fault ? Math.max(0, v.on_time_rate - 4) : v.on_time_rate;
+          const updatedMonthly = v.monthly_performance.map((m, i) =>
+            i === v.monthly_performance.length - 1 ? { ...m, on_time_rate: newRate } : m
+          );
+          return {
             ...v,
-            on_time_rate: action.payload.vendor_fault ? Math.max(0, v.on_time_rate - 4) : v.on_time_rate,
-            blame_score: action.payload.vendor_fault ? Math.min(100, v.blame_score + 12) : v.blame_score,
-            incidents: action.payload.vendor_fault
+            on_time_rate: newRate,
+            blame_score: vendor_fault ? Math.min(100, v.blame_score + 12) : v.blame_score,
+            monthly_performance: updatedMonthly,
+            incidents: vendor_fault
               ? [{ id: `INC-LIVE-${Date.now()}`, date: new Date().toISOString().split("T")[0], shipment_id: action.payload.shipment_id, leg: action.payload.leg_id, delay_hours: action.payload.delay_hours, reason: action.payload.reason, vendor_fault: true, resolved: false }, ...v.incidents]
               : v.incidents,
-          }
-        ),
+          };
+        }),
       };
     }
 
