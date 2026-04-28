@@ -23,14 +23,24 @@ function timeAgo(iso) {
 }
 
 export default function LiveFeed() {
-  const { state } = useApp();
+  const { state, sseStatus, BACKEND } = useApp();
+
+  const dotClass = sseStatus === "live" ? "dot-green" : sseStatus === "error" ? "dot-red" : "dot-amber";
+  const statusLabel = sseStatus === "live" ? "Connected · live"
+    : sseStatus === "error" ? "Reconnecting..."
+    : "Connecting...";
+
+  // Show just the hostname for display
+  const backendHost = BACKEND
+    ? BACKEND.replace("https://", "").replace("http://", "")
+    : "same-origin";
 
   return (
     <div className="livefeed">
       <div className="livefeed-header">
         <span className="livefeed-title">Live Webhook Feed</span>
         <span
-          className={`dot ${state.events.length > 0 ? "dot-red" : "dot-green"}`}
+          className={`dot ${state.events.length > 0 ? "dot-red" : dotClass}`}
           style={{ marginLeft: "auto" }}
         />
       </div>
@@ -73,10 +83,11 @@ export default function LiveFeed() {
       )}
 
       <div className="livefeed-footer">
-        <span className="dot dot-green" />
-        <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
-          {import.meta.env.VITE_BACKEND_URL ? "Connected to localhost:3001" : "Connected · live"}
-        </span>
+        <span className={`dot ${dotClass}`} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <span style={{ fontSize: 11, color: "var(--text-dim)" }}>{statusLabel}</span>
+          <span style={{ fontSize: 10, color: "var(--text-dim)", opacity: 0.6 }}>{backendHost}</span>
+        </div>
       </div>
     </div>
   );

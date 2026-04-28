@@ -1,8 +1,9 @@
-import { createContext, useContext, useReducer, useEffect } from "react";
+import { createContext, useContext, useReducer, useEffect, useRef, useState } from "react";
 import shipmentsData from "../data/Shipment.json";
 import vendorsData from "../data/Vendors.json";
 
 const AppContext = createContext();
+const BACKEND = import.meta.env.VITE_BACKEND_URL ?? "";
 
 function reducer(state, action) {
   switch (action.type) {
@@ -77,23 +78,48 @@ const initialState = {
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [sseStatus, setSseStatus] = useState("connecting"); // connecting | live | error
+  const esRef = useRef(null);
+  const retryRef = useRef(null);
 
-  const BACKEND = import.meta.env.VITE_BACKEND_URL ?? "";
+  function connect() {
+    // Close any existing connection first
+    if (esRef.current) esRef.current.close();
 
-  useEffect(() => {
+    setSseStatus("connecting");
     const es = new EventSource(`${BACKEND}/events`);
+    esRef.current = es;
 
     es.onmessage = (e) => {
       const msg = JSON.parse(e.data);
-      if (msg.type === "delay") dispatch({ type: "DELAY_EVENT", payload: msg.data });
-      if (msg.type === "reset") dispatch({ type: "RESET" });
+      if (msg.type === "connected") setSseStatus("live");
+      if (msg.type === "delay")     dispatch({ type: "DELAY_EVENT", payload: msg.data });
+      if (msg.type === "reset")     dispatch({ type: "RESET" });
     };
 
-    es.onerror = () => console.warn("SSE connection lost — retrying...");
-    return () => es.close();
+    es.onopen = () => setSseStatus("live");
+
+    es.onerror = () => {
+      setSseStatus("error");
+      es.close();
+      // Retry after 5s — handles Render cold start spin-up (~10-30s)
+      retryRef.current = setTimeout(connect, 5000);
+    };
+  }
+
+  useEffect(() => {
+    connect();
+    return () => {
+      esRef.current?.close();
+      clearTimeout(retryRef.current);
+    };
   }, []);
 
-  return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={{ state, dispatch, sseStatus, BACKEND }}>
+      {children}
+    </AppContext.Provider>
+  );
 }
 
 export const useApp = () => useContext(AppContext);

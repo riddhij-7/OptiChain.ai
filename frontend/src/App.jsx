@@ -6,6 +6,8 @@ import LiveFeed from "./components/LiveFeed";
 import { Link2, RotateCcw } from "lucide-react";
 import "./App.css";
 
+const BACKEND = import.meta.env.VITE_BACKEND_URL ?? "";
+
 export default function App() {
   const [activeTab, setActiveTab] = useState("tracker");
   const { state, dispatch } = useApp();
@@ -14,8 +16,6 @@ export default function App() {
   const atRiskCount  = state.shipments.filter((s) =>
     s.legs.some((l) => l.status === "at_risk")
   ).length;
-
-  const BACKEND = import.meta.env.VITE_BACKEND_URL ?? "";
 
   const handleReset = async () => {
     await fetch(`${BACKEND}/reset`, { method: "POST" });

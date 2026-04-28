@@ -3,9 +3,26 @@ const cors = require("cors");
 const { scriptedEvents } = require("./webhook-events");
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// Allow Firebase Hosting domain + localhost dev
+const ALLOWED_ORIGINS = [
+  "https://optichain-ai.web.app",
+  "https://optichain-ai.firebaseapp.com",
+  "http://localhost:5173",
+  "http://localhost:4173",
+  "http://localhost:3000",
+];
+
+app.use(cors({
+  origin: (origin, cb) => {
+    // Allow requests with no origin (curl, Postman, server-to-server)
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS blocked: ${origin}`));
+  },
+  methods: ["GET", "POST"],
+}));
+
 app.use(express.json());
 
 // --- SSE client registry ---
@@ -13,41 +30,56 @@ let clients = [];
 
 // --- Demo timer handles ---
 let demoTimers = [];
+let demoStarted = false;
 
 function broadcast(event) {
   const payload = `data: ${JSON.stringify(event)}\n\n`;
-  clients.forEach((res) => res.write(payload));
-  console.log(`[broadcast] ${event.type} → ${event.data?.shipment_id || ""}`);
+  clients = clients.filter((res) => {
+    try { res.write(payload); return true; }
+    catch (_) { return false; } // drop dead connections
+  });
+  console.log(`[broadcast] ${event.type} → ${event.data?.shipment_id || ""} (${clients.length} clients)`);
 }
 
-// --- SSE endpoint  ---
+// --- SSE endpoint ---
 app.get("/events", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no"); // disable Nginx/Render proxy buffering
   res.flushHeaders();
 
-  
+  // Confirm connection immediately
   res.write(`data: ${JSON.stringify({ type: "connected", message: "SSE live" })}\n\n`);
 
   clients.push(res);
   console.log(`[SSE] client connected — total: ${clients.length}`);
 
+  // Heartbeat every 25s — keeps Render + browser connection alive
+  const heartbeat = setInterval(() => {
+    try { res.write(": ping\n\n"); } catch (_) { clearInterval(heartbeat); }
+  }, 25000);
+
+  // Start demo on first ever connection
+  if (!demoStarted) {
+    demoStarted = true;
+    startDemoScript();
+  }
+
   req.on("close", () => {
+    clearInterval(heartbeat);
     clients = clients.filter((c) => c !== res);
     console.log(`[SSE] client disconnected — total: ${clients.length}`);
   });
 });
 
-// --- Manual webhook endpoint  ---
+// --- Manual webhook endpoint ---
 app.post("/webhook", (req, res) => {
   const event = req.body;
-
   if (!event.shipment_id || !event.leg_id) {
     return res.status(400).json({ error: "shipment_id and leg_id are required" });
   }
-
-  const webhookEvent = {
+  broadcast({
     type: "delay",
     timestamp: new Date().toISOString(),
     source: "manual",
@@ -60,28 +92,22 @@ app.post("/webhook", (req, res) => {
       reason: event.reason,
       message: event.message || "Manual delay reported via webhook",
     },
-  };
-
-  broadcast(webhookEvent);
-  res.json({ status: "ok", event: webhookEvent });
+  });
+  res.json({ status: "ok" });
 });
 
-// --- Reset endpoint  ---
+// --- Reset endpoint ---
 app.post("/reset", (req, res) => {
-  
   demoTimers.forEach((t) => clearTimeout(t));
   demoTimers = [];
-
-  
+  demoStarted = false;
   broadcast({ type: "reset", timestamp: new Date().toISOString() });
-
-  
+  demoStarted = true;
   startDemoScript();
-
   res.json({ status: "ok", message: "Demo reset and restarted" });
 });
 
-// --- Status endpoint (health check) ---
+// --- Health check (Render uses this to detect the service is up) ---
 app.get("/status", (req, res) => {
   res.json({
     status: "running",
@@ -90,13 +116,15 @@ app.get("/status", (req, res) => {
   });
 });
 
+// Root ping so Render health check passes
+app.get("/", (req, res) => res.send("BlameChain backend running"));
 
+// --- Scripted demo ---
 function startDemoScript() {
   console.log("\n[demo] Scripted events armed. Starting in 5 seconds...\n");
-
   scriptedEvents.forEach(({ delay_ms, event }) => {
     const t = setTimeout(() => {
-      console.log(`[demo] Firing scripted event at t=${delay_ms / 1000}s`);
+      console.log(`[demo] Firing event at t=${delay_ms / 1000}s`);
       broadcast({ type: "delay", timestamp: new Date().toISOString(), source: "scripted", data: event });
     }, delay_ms);
     demoTimers.push(t);
@@ -104,11 +132,9 @@ function startDemoScript() {
 }
 
 app.listen(PORT, () => {
-  console.log(`\n✓ BlameChain webhook server running on http://localhost:${PORT}`);
-  console.log(`  SSE stream:   GET  http://localhost:${PORT}/events`);
-  console.log(`  Manual hook:  POST http://localhost:${PORT}/webhook`);
-  console.log(`  Reset demo:   POST http://localhost:${PORT}/reset`);
-  console.log(`  Health check: GET  http://localhost:${PORT}/status\n`);
-
-  startDemoScript();
+  console.log(`\n✓ BlameChain backend running on port ${PORT}`);
+  console.log(`  SSE stream:   GET  /events`);
+  console.log(`  Manual hook:  POST /webhook`);
+  console.log(`  Reset demo:   POST /reset`);
+  console.log(`  Health check: GET  /status\n`);
 });
