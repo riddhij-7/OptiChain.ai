@@ -75,7 +75,7 @@ export default function LiveFeed() {
       <div className="livefeed-footer">
         <span className="dot dot-green" />
         <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
-          Connected to localhost:3001
+          {import.meta.env.VITE_BACKEND_URL ? "Connected to localhost:3001" : "Connected · live"}
         </span>
       </div>
     </div>

@@ -15,8 +15,10 @@ export default function App() {
     s.legs.some((l) => l.status === "at_risk")
   ).length;
 
+  const BACKEND = import.meta.env.VITE_BACKEND_URL ?? "";
+
   const handleReset = async () => {
-    await fetch("http://localhost:3001/reset", { method: "POST" });
+    await fetch(`${BACKEND}/reset`, { method: "POST" });
     dispatch({ type: "RESET" });
   };
 

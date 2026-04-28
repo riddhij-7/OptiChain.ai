@@ -78,8 +78,10 @@ const initialState = {
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  const BACKEND = import.meta.env.VITE_BACKEND_URL ?? "";
+
   useEffect(() => {
-    const es = new EventSource("http://localhost:3001/events");
+    const es = new EventSource(`${BACKEND}/events`);
 
     es.onmessage = (e) => {
       const msg = JSON.parse(e.data);
