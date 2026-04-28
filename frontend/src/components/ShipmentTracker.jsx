@@ -1,11 +1,16 @@
 import { useState } from "react";
 import { useApp } from "../context/AppContext";
 import BlamePanel from "./BlamePanel";
+import {
+  Ship, Plane, Truck, Package,
+  ChevronDown, ChevronUp,
+  Zap, AlertTriangle, CloudLightning, FileX, ShieldAlert,
+} from "lucide-react";
 
 const REASON_LABEL = {
-  breakdown: "Vehicle / Vessel Breakdown",
-  customs:   "Customs Hold",
-  weather:   "Weather Event",
+  breakdown:    "Vehicle / Vessel Breakdown",
+  customs:      "Customs Hold",
+  weather:      "Weather Event",
   vendor_fault: "Vendor Fault",
 };
 
@@ -14,6 +19,19 @@ const REASON_COLOR = {
   customs:      "amber",
   weather:      "blue",
   vendor_fault: "red",
+};
+
+const REASON_ICON = {
+  breakdown:    <Truck        size={11} strokeWidth={2} />,
+  customs:      <FileX        size={11} strokeWidth={2} />,
+  weather:      <CloudLightning size={11} strokeWidth={2} />,
+  vendor_fault: <ShieldAlert  size={11} strokeWidth={2} />,
+};
+
+const TYPE_ICON = {
+  sea:  <Ship  size={13} strokeWidth={1.7} />,
+  air:  <Plane size={13} strokeWidth={1.7} />,
+  road: <Truck size={13} strokeWidth={1.7} />,
 };
 
 function StatusDot({ status }) {
@@ -44,26 +62,35 @@ function LegTimeline({ legs }) {
     <div className="leg-timeline">
       {legs.map((leg, i) => (
         <div key={leg.leg_id} className="leg-item">
-          {/* Connector line */}
           {i > 0 && (
-            <div className={`leg-connector ${leg.status === "delayed" ? "connector-red" : leg.status === "at_risk" ? "connector-amber" : "connector-grey"}`} />
+            <div className={`leg-connector ${
+              leg.status === "delayed" ? "connector-red" :
+              leg.status === "at_risk" ? "connector-amber" : "connector-grey"
+            }`} />
           )}
           <div className={`leg-node ${leg.status}`}>
             <div className="leg-node-top">
               <StatusDot status={leg.status} />
               <span className="leg-seq">Leg {leg.sequence}</span>
-              <span className="leg-type-icon">{leg.type === "sea" ? "🚢" : leg.type === "air" ? "✈️" : "🚛"}</span>
+              <span className="leg-type-icon">
+                {TYPE_ICON[leg.type] ?? <Package size={13} strokeWidth={1.7} />}
+              </span>
               <StatusBadge status={leg.status} />
+              {leg.delay_hours && (
+                <span className="delay-badge" style={{ marginLeft: "auto" }}>
+                  +{leg.delay_hours}h
+                </span>
+              )}
             </div>
             <div className="leg-vendor">{leg.vendor_name}</div>
             <div className="leg-route">{leg.origin} → {leg.destination}</div>
             <div className="leg-eta">
-              ETA: <span className={leg.status === "delayed" ? "text-red" : "text-sub"}>
-                {new Date(leg.promised_eta).toLocaleDateString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+              ETA:&nbsp;
+              <span className={leg.status === "delayed" ? "text-red" : "text-sub"}>
+                {new Date(leg.promised_eta).toLocaleDateString("en-GB", {
+                  day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
+                })}
               </span>
-              {leg.delay_hours && (
-                <span className="delay-badge">+{leg.delay_hours}h</span>
-              )}
             </div>
             {leg.delay_message && (
               <div className="leg-delay-msg">{leg.delay_message}</div>
@@ -77,70 +104,129 @@ function LegTimeline({ legs }) {
 
 export default function ShipmentTracker() {
   const { state } = useApp();
-  const [expanded, setExpanded] = useState(null);
-  const [blameTarget, setBlameTarget] = useState(null); // { shipment, leg }
+  const [expanded, setExpanded]         = useState(null);
+  const [blameTarget, setBlameTarget]   = useState(null);
+  const [activeFilter, setActiveFilter] = useState(null);
 
   const toggle = (id) => setExpanded(expanded === id ? null : id);
 
-  const getWorstLeg = (shipment) =>
-    shipment.legs.find((l) => l.status === "delayed") ||
-    shipment.legs.find((l) => l.status === "at_risk");
+  const getWorstLeg = (s) =>
+    s.legs.find((l) => l.status === "delayed") ||
+    s.legs.find((l) => l.status === "at_risk");
+
+  const counts = {
+    on_track: state.shipments.filter((s) => s.status === "on_track").length,
+    at_risk:  state.shipments.filter(
+      (s) => s.status !== "delayed" && s.legs.some((l) => l.status === "at_risk")
+    ).length,
+    delayed: state.shipments.filter((s) => s.status === "delayed").length,
+  };
+
+  const visibleShipments = activeFilter
+    ? state.shipments.filter((s) => {
+        const isDelayed = s.status === "delayed";
+        const isAtRisk  = !isDelayed && s.legs.some((l) => l.status === "at_risk");
+        if (activeFilter === "delayed")  return isDelayed;
+        if (activeFilter === "at_risk")  return isAtRisk;
+        if (activeFilter === "on_track") return !isDelayed && !isAtRisk;
+        return true;
+      })
+    : state.shipments;
+
+  const filterDef = [
+    { key: "on_track", label: "On Track", color: "green" },
+    { key: "at_risk",  label: "At Risk",  color: "amber" },
+    { key: "delayed",  label: "Delayed",  color: "red"   },
+  ];
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.3px" }}>Shipment Tracker</h1>
-          <p style={{ color: "var(--text-sub)", fontSize: 13, marginTop: 2 }}>
-            {state.shipments.length} active shipments · live webhook monitoring
+      {/* ── Page header ── */}
+      <div className="tracker-header">
+        <div className="tracker-header-left">
+          <h1 className="tracker-title">Shipment Tracker</h1>
+          <p className="tracker-sub">
+            {state.shipments.length} active shipments
+            {activeFilter && (
+              <span className="filter-active-label">
+                &nbsp;· filtered:{" "}
+                <strong>{filterDef.find((f) => f.key === activeFilter)?.label}</strong>
+                <button
+                  className="filter-clear-btn"
+                  onClick={() => setActiveFilter(null)}
+                >
+                  ✕
+                </button>
+              </span>
+            )}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          {["on_track", "at_risk", "delayed"].map((s) => {
-            const count = state.shipments.filter((sh) =>
-              s === "on_track"
-                ? sh.status === "on_track"
-                : sh.legs.some((l) => l.status === s)
-            ).length;
-            return (
-              <div key={s} className={`stat-chip stat-${s === "on_track" ? "green" : s === "at_risk" ? "amber" : "red"}`}>
-                <span>{count}</span>
-                <span>{s === "on_track" ? "On Track" : s === "at_risk" ? "At Risk" : "Delayed"}</span>
-              </div>
-            );
-          })}
+
+        {/* Filter chips */}
+        <div className="filter-chips">
+          {filterDef.map(({ key, label, color }) => (
+            <button
+              key={key}
+              className={`filter-chip filter-chip-${color} ${
+                activeFilter === key ? "filter-chip-active" : ""
+              }`}
+              onClick={() => setActiveFilter(activeFilter === key ? null : key)}
+              title={`Filter: ${label}`}
+            >
+              <span className="filter-chip-count">{counts[key]}</span>
+              <span className="filter-chip-label">{label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Shipment rows */}
+      {/* ── Shipment list ── */}
       <div className="shipment-list">
-        {state.shipments.map((s) => {
-          const worstLeg = getWorstLeg(s);
-          const isOpen = expanded === s.id;
-          const isDelayed = s.status === "delayed";
-          const isAtRisk = !isDelayed && s.legs.some((l) => l.status === "at_risk");
+        {visibleShipments.length === 0 && (
+          <div className="empty-state">No shipments match this filter.</div>
+        )}
+
+        {visibleShipments.map((s) => {
+          const worstLeg   = getWorstLeg(s);
+          const isOpen     = expanded === s.id;
+          const isDelayed  = s.status === "delayed";
+          const isAtRisk   = !isDelayed && s.legs.some((l) => l.status === "at_risk");
+          const cardStatus = isDelayed ? "delayed" : isAtRisk ? "at_risk" : "on_track";
 
           return (
-            <div key={s.id} className={`shipment-card ${isDelayed ? "shipment-delayed" : isAtRisk ? "shipment-atrisk" : ""}`}>
-              {/* Header row */}
+            <div
+              key={s.id}
+              className={`shipment-card ${
+                isDelayed ? "shipment-delayed" : isAtRisk ? "shipment-atrisk" : ""
+              }`}
+            >
+              {/* ── Card header ── */}
               <div className="shipment-header" onClick={() => toggle(s.id)}>
-                <div className="sh-left">
-                  <StatusDot status={isDelayed ? "delayed" : isAtRisk ? "at_risk" : "on_track"} />
-                  <div>
-                    <div className="sh-id">{s.id}</div>
-                    <div className="sh-title">{s.title}</div>
+
+                {/* Col 1: Status + ID + Title */}
+                <div className="sh-col sh-col-id">
+                  <StatusDot status={cardStatus} />
+                  <div className="sh-id-block">
+                    <span className="sh-id">{s.id}</span>
+                    <span className="sh-title">{s.title}</span>
                   </div>
                 </div>
 
-                <div className="sh-mid">
-                  <span className="sh-route">{s.origin}</span>
-                  <span className="sh-arrow">→</span>
-                  <span className="sh-route">{s.destination}</span>
+                {/* Col 2: Route */}
+                <div className="sh-col sh-col-route">
+                  <span className="sh-origin">{s.origin}</span>
+                  <span className="sh-route-arrow">→</span>
+                  <span className="sh-dest">{s.destination}</span>
                 </div>
 
-                <div className="sh-right">
+                {/* Col 3: Customer + Value */}
+                <div className="sh-col sh-col-meta">
                   <span className="sh-customer">{s.customer}</span>
                   <span className="sh-value">${s.total_value.toLocaleString()}</span>
+                </div>
+
+                {/* Col 4: Actions */}
+                <div className="sh-col sh-col-actions">
                   {worstLeg && isDelayed && (
                     <button
                       className="blame-btn"
@@ -149,28 +235,44 @@ export default function ShipmentTracker() {
                         setBlameTarget({ shipment: s, leg: worstLeg });
                       }}
                     >
-                      ⚡ Analyze Blame
+                      <Zap size={11} strokeWidth={2.5} />
+                      Analyze Blame
                     </button>
                   )}
-                  <StatusBadge status={isDelayed ? "delayed" : isAtRisk ? "at_risk" : "on_track"} />
-                  <span className="expand-icon">{isOpen ? "▲" : "▼"}</span>
+                  <StatusBadge status={cardStatus} />
+                  <span className="expand-icon">
+                    {isOpen
+                      ? <ChevronUp   size={14} strokeWidth={2} />
+                      : <ChevronDown size={14} strokeWidth={2} />}
+                  </span>
                 </div>
               </div>
 
-              {/* Delay alert bar */}
+              {/* ── Delay alert bar ── */}
               {isDelayed && worstLeg && (
                 <div className="delay-alert-bar">
-                  <span className="delay-reason-tag" style={{ background: `var(--${REASON_COLOR[worstLeg.reason] || "red"}-dim)`, color: `var(--${REASON_COLOR[worstLeg.reason] || "red"})` }}>
-                    {REASON_LABEL[worstLeg.reason] || worstLeg.reason}
+                  <span
+                    className="delay-reason-tag"
+                    style={{
+                      background: `var(--${REASON_COLOR[worstLeg.reason] ?? "red"}-dim)`,
+                      color: `var(--${REASON_COLOR[worstLeg.reason] ?? "red"})`,
+                    }}
+                  >
+                    <span className="delay-reason-icon">
+                      {REASON_ICON[worstLeg.reason] ?? <AlertTriangle size={11} />}
+                    </span>
+                    {REASON_LABEL[worstLeg.reason] ?? worstLeg.reason}
                   </span>
                   <span className="delay-alert-msg">{worstLeg.delay_message}</span>
                 </div>
               )}
 
-              {/* Expanded leg timeline */}
+              {/* ── Expanded legs ── */}
               {isOpen && (
                 <div className="shipment-legs">
-                  <div className="section-title" style={{ marginBottom: 12 }}>Leg Breakdown</div>
+                  <div className="section-title" style={{ marginBottom: 12 }}>
+                    Leg Breakdown
+                  </div>
                   <LegTimeline legs={s.legs} />
                 </div>
               )}
@@ -179,7 +281,6 @@ export default function ShipmentTracker() {
         })}
       </div>
 
-      {/* Blame panel overlay */}
       {blameTarget && (
         <BlamePanel
           shipment={blameTarget.shipment}

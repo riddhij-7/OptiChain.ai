@@ -3,6 +3,7 @@ import { useApp } from "./context/AppContext";
 import ShipmentTracker from "./components/ShipmentTracker";
 import VendorScorecard from "./components/VendorScorecard";
 import LiveFeed from "./components/LiveFeed";
+import { Link2, RotateCcw } from "lucide-react";
 import "./App.css";
 
 export default function App() {
@@ -10,7 +11,7 @@ export default function App() {
   const { state, dispatch } = useApp();
 
   const delayedCount = state.shipments.filter((s) => s.status === "delayed").length;
-  const atRiskCount = state.shipments.filter((s) =>
+  const atRiskCount  = state.shipments.filter((s) =>
     s.legs.some((l) => l.status === "at_risk")
   ).length;
 
@@ -21,11 +22,10 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Top navbar */}
       <header className="navbar">
         <div className="navbar-left">
           <div className="logo">
-            <span className="logo-icon">⛓</span>
+            <Link2 size={17} strokeWidth={2.2} className="logo-icon" />
             <span className="logo-text">BlameChain</span>
             <span className="logo-tag">Supply Intelligence</span>
           </div>
@@ -60,12 +60,12 @@ export default function App() {
             )}
           </div>
           <button className="reset-btn" onClick={handleReset}>
-            ↺ Reset Demo
+            <RotateCcw size={12} strokeWidth={2.2} />
+            Reset Demo
           </button>
         </div>
       </header>
 
-      {/* Main content */}
       <div className="main-layout">
         <div className="content-area">
           {activeTab === "tracker" && <ShipmentTracker />}

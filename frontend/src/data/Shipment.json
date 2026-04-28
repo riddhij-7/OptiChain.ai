@@ -1,7 +1,7 @@
 [
   {
     "id": "SH-001",
-    "title": "Electronics Batch — Mumbai to Berlin",
+    "title": "Electronics Batch: Mumbai to Berlin",
     "origin": "Mumbai, IN",
     "destination": "Berlin, DE",
     "customer": "TechCorp GmbH",
@@ -68,7 +68,7 @@
   },
   {
     "id": "SH-002",
-    "title": "Pharma Supplies — Chennai to Amsterdam",
+    "title": "Pharma Supplies: Chennai to Amsterdam",
     "origin": "Chennai, IN",
     "destination": "Amsterdam, NL",
     "customer": "MedSupply BV",
@@ -135,7 +135,7 @@
   },
   {
     "id": "SH-003",
-    "title": "Auto Parts — Pune to Stuttgart",
+    "title": "Auto Parts: Pune to Stuttgart",
     "origin": "Pune, IN",
     "destination": "Stuttgart, DE",
     "customer": "AutoWerk AG",
@@ -269,7 +269,7 @@
   },
   {
     "id": "SH-005",
-    "title": "Industrial Machinery — Delhi to Tokyo",
+    "title": "Industrial Machinery: Delhi to Tokyo",
     "origin": "Delhi, IN",
     "destination": "Tokyo, JP",
     "customer": "Tanaka Industries",
