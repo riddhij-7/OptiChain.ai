@@ -5,23 +5,8 @@ const { scriptedEvents } = require("./webhook-events");
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Allow Firebase Hosting domain + localhost dev
-const ALLOWED_ORIGINS = [
-  "https://optichain-ai.web.app",
-  "https://optichain-ai.firebaseapp.com",
-  "http://localhost:5173",
-  "http://localhost:4173",
-  "http://localhost:3000",
-];
-
-app.use(cors({
-  origin: (origin, cb) => {
-    // Allow requests with no origin (curl, Postman, server-to-server)
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
-    cb(new Error(`CORS blocked: ${origin}`));
-  },
-  methods: ["GET", "POST"],
-}));
+// Open CORS — public demo, no auth tokens on these endpoints
+app.use(cors({ origin: "*", methods: ["GET", "POST"] }));
 
 app.use(express.json());
 
