@@ -56,7 +56,12 @@ function reducer(state, action) {
     }
 
     case "RESET":
-      return { ...initialState };
+      return {
+        shipments: JSON.parse(JSON.stringify(shipmentsData)),
+        vendors:   JSON.parse(JSON.stringify(vendorsData)),
+        events:    [],
+        blameReports: {},
+      };
 
     default:
       return state;

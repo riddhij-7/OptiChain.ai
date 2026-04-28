@@ -115,20 +115,18 @@ export default function ShipmentTracker() {
     s.legs.find((l) => l.status === "at_risk");
 
   const counts = {
-    on_track: state.shipments.filter((s) => s.status === "on_track").length,
-    at_risk:  state.shipments.filter(
-      (s) => s.status !== "delayed" && s.legs.some((l) => l.status === "at_risk")
-    ).length,
-    delayed: state.shipments.filter((s) => s.status === "delayed").length,
+    on_track: state.shipments.filter((s) => s.status === "on_track" && !s.legs.some((l) => l.status === "at_risk")).length,
+    at_risk:  state.shipments.filter((s) => s.legs.some((l) => l.status === "at_risk")).length,
+    delayed:  state.shipments.filter((s) => s.status === "delayed").length,
   };
 
   const visibleShipments = activeFilter
     ? state.shipments.filter((s) => {
         const isDelayed = s.status === "delayed";
-        const isAtRisk  = !isDelayed && s.legs.some((l) => l.status === "at_risk");
+        const hasAtRisk = s.legs.some((l) => l.status === "at_risk");
         if (activeFilter === "delayed")  return isDelayed;
-        if (activeFilter === "at_risk")  return isAtRisk;
-        if (activeFilter === "on_track") return !isDelayed && !isAtRisk;
+        if (activeFilter === "at_risk")  return hasAtRisk;
+        if (activeFilter === "on_track") return !isDelayed && !hasAtRisk;
         return true;
       })
     : state.shipments;
