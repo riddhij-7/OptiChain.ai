@@ -4,9 +4,9 @@ import VendorCard from "./VendorCard";
 import { runVendorAnalysis } from "../services/geminiService";
 
 const TIER_STYLE = {
-  RELIABLE:  { color: "var(--green)", bg: "var(--green-dim)", border: "rgba(82,183,136,0.3)",  icon: "✅" },
+  RELIABLE:  { color: "var(--green)", bg: "var(--green-dim)", border: "rgba(82,183,136,0.3)" },
   MONITOR:   { color: "var(--amber)", bg: "var(--amber-dim)", border: "rgba(244,162,97,0.3)",  icon: "⚠️" },
-  HIGH_RISK: { color: "var(--red)",   bg: "var(--red-dim)",   border: "rgba(230,57,70,0.3)",   icon: "🚨" },
+  HIGH_RISK: { color: "var(--red)",   bg: "var(--red-dim)",   border: "rgba(230,57,70,0.3)" },
 };
 
 const ACTION_STYLE = {
@@ -71,34 +71,72 @@ export default function VendorScorecard() {
             <div style={{ fontSize: 10, color: "var(--text-dim)" }}>Total Incidents</div>
           </div>
           <button
-            onClick={runAnalysis}
-            disabled={aiStatus === "loading"}
-            style={{
-              background: aiStatus === "loading" ? "var(--bg-hover)" : "var(--blue-dim)",
-              border: `1px solid ${aiStatus === "loading" ? "var(--border)" : "rgba(72,149,239,0.35)"}`,
-              color: aiStatus === "loading" ? "var(--text-dim)" : "var(--blue)",
-              fontSize: 12, fontWeight: 600, fontFamily: "var(--font)",
-              padding: "8px 14px", borderRadius: 8, cursor: aiStatus === "loading" ? "not-allowed" : "pointer",
-              display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
-              transition: "all .15s",
-            }}
-          >
-            {aiStatus === "loading" ? (
-              <>
-                <span style={{ width: 12, height: 12, border: "2px solid var(--border-lt)", borderTopColor: "var(--blue)", borderRadius: "50%", display: "inline-block", animation: "spin .7s linear infinite" }} />
-                Analyzing...
-              </>
-            ) : (
-              <>{aiStatus === "done" ? "✦ Re-analyze" : "✦ AI Reliability Check"}</>
-            )}
-          </button>
+  onClick={runAnalysis}
+  disabled={aiStatus === "loading"}
+  style={{
+    background:
+      aiStatus === "loading"
+        ? "var(--bg-hover)"
+        : "var(--blue)",
+
+    border: `1px solid ${
+      aiStatus === "loading"
+        ? "var(--border)"
+        : "var(--blue)"
+    }`,
+
+    color:
+      aiStatus === "loading"
+        ? "var(--text-dim)"
+        : "#ffffff",
+
+    fontSize: 12,
+    fontWeight: 600,
+    fontFamily: "var(--font)",
+    padding: "8px 14px",
+    borderRadius: 8,
+    cursor:
+      aiStatus === "loading"
+        ? "not-allowed"
+        : "pointer",
+
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    whiteSpace: "nowrap",
+    transition: "all .15s",
+  }}
+>
+  {aiStatus === "loading" ? (
+    <>
+      <span
+        style={{
+          width: 12,
+          height: 12,
+          border: "2px solid rgba(255,255,255,0.35)",
+          borderTopColor: "#ffffff",
+          borderRadius: "50%",
+          display: "inline-block",
+          animation: "spin .7s linear infinite",
+        }}
+      />
+      Analyzing...
+    </>
+  ) : (
+    <>
+      {aiStatus === "done"
+        ? "Re-analyze"
+        : "AI Reliability Check"}
+    </>
+  )}
+</button>
         </div>
       </div>
 
       {/* ── AI Fleet Health Banner ── */}
       {aiStatus === "done" && aiResult && (
         <div style={{ background: "var(--blue-dim)", border: "1px solid rgba(72,149,239,0.25)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 18 }}>🤖</span>
+      
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 3 }}>AI Fleet Assessment</div>
             <div style={{ fontSize: 13, color: "var(--text)" }}>{aiResult.fleet_health}</div>

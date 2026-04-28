@@ -1,5 +1,5 @@
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`;
 
 async function callGemini(prompt) {
   const response = await fetch(GEMINI_URL, {
@@ -7,7 +7,7 @@ async function callGemini(prompt) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
+      generationConfig: { temperature: 0.2, maxOutputTokens: 3000 },
     }),
   });
   if (!response.ok) {
@@ -18,8 +18,8 @@ async function callGemini(prompt) {
   const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!raw) throw new Error("Empty response from Gemini");
   const cleaned = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
-  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("No JSON object found in Gemini response");
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+if (!jsonMatch) throw new Error("No JSON object found in Gemini response");
   try { return JSON.parse(jsonMatch[0]); }
   catch { throw new Error("Failed to parse Gemini response as JSON"); }
 }
@@ -131,6 +131,9 @@ Respond ONLY with a valid JSON object in this exact shape:
     }
   ]
 }
+  CRITICAL: Your entire response must be a single valid JSON object starting with { and ending with }.
+Do not include any text, explanation, or markdown before or after the JSON.
+Keep all string values under 80 words. Total response must be under 1800 tokens.
 `;
 
   return callGemini(prompt);

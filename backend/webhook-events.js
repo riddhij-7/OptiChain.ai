@@ -1,15 +1,3 @@
-// 4 scripted delay events that fire automatically during the demo.
-// These simulate real carrier webhook pushes — the same format a
-// FedEx / Maersk / DHL API would use to notify your system of a delay.
-//
-// Timing:
-//   Event 1 — t=5s  : FastFreight vessel breakdown on SH-003 (Mumbai→Port Said)
-//   Event 2 — t=15s : FastFreight customs failure on SH-002 (Colombo→Rotterdam)
-//   Event 3 — t=30s : Weather delay on SH-001 (Dubai→Frankfurt) — NOT vendor fault
-//   Event 4 — t=50s : FastFreight repeat breakdown on SH-004 (Nhava Sheva→Jebel Ali)
-//
-// Event 4 is the "nail in the coffin" for FastFreight's scorecard —
-// a second vendor_fault incident on the same carrier in one demo session.
 
 const scriptedEvents = [
   {

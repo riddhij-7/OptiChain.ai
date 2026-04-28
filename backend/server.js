@@ -11,7 +11,7 @@ app.use(express.json());
 // --- SSE client registry ---
 let clients = [];
 
-// --- Demo timer handles (so we can cancel on reset) ---
+// --- Demo timer handles ---
 let demoTimers = [];
 
 function broadcast(event) {
@@ -20,14 +20,14 @@ function broadcast(event) {
   console.log(`[broadcast] ${event.type} → ${event.data?.shipment_id || ""}`);
 }
 
-// --- SSE endpoint (frontend connects here) ---
+// --- SSE endpoint  ---
 app.get("/events", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders();
 
-  // Send a heartbeat immediately so frontend knows connection is live
+  
   res.write(`data: ${JSON.stringify({ type: "connected", message: "SSE live" })}\n\n`);
 
   clients.push(res);
@@ -39,7 +39,7 @@ app.get("/events", (req, res) => {
   });
 });
 
-// --- Manual webhook endpoint (for judge Q&A / custom triggers) ---
+// --- Manual webhook endpoint  ---
 app.post("/webhook", (req, res) => {
   const event = req.body;
 
@@ -66,16 +66,16 @@ app.post("/webhook", (req, res) => {
   res.json({ status: "ok", event: webhookEvent });
 });
 
-// --- Reset endpoint (resets demo state for all connected clients) ---
+// --- Reset endpoint  ---
 app.post("/reset", (req, res) => {
-  // Cancel any pending scripted timers
+  
   demoTimers.forEach((t) => clearTimeout(t));
   demoTimers = [];
 
-  // Tell all clients to reset their state
+  
   broadcast({ type: "reset", timestamp: new Date().toISOString() });
 
-  // Re-arm the scripted demo from scratch
+  
   startDemoScript();
 
   res.json({ status: "ok", message: "Demo reset and restarted" });
@@ -90,8 +90,7 @@ app.get("/status", (req, res) => {
   });
 });
 
-// --- Start scripted demo events ---
-// Stores timer handles so they can be cancelled on reset
+
 function startDemoScript() {
   console.log("\n[demo] Scripted events armed. Starting in 5 seconds...\n");
 

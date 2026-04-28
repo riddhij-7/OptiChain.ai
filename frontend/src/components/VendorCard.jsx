@@ -10,7 +10,7 @@ const TIER_STYLE = {
 const ACTION_LABEL = {
   CONTINUE:        { color: "var(--green)", label: "✓ Continue" },
   REVIEW_CONTRACT: { color: "var(--amber)", label: "⚠ Review Contract" },
-  ESCALATE:        { color: "var(--red)",   label: "🚨 Escalate" },
+  ESCALATE:        { color: "var(--red)",   label: " Escalate" },
 };
 
 const TREND_ICON  = { IMPROVING: "↗", DECLINING: "↘", STABLE: "→" };
@@ -30,7 +30,7 @@ export default function VendorCard({ vendor, insight }) {
       {/* Red flag badge */}
       {isCritical && (
         <div style={{ position: "absolute", top: 12, right: 12, background: "var(--red)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 4, letterSpacing: "0.5px" }}>
-          🚨 RED FLAG
+           RED FLAG
         </div>
       )}
 

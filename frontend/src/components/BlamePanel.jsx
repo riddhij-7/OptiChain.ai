@@ -147,7 +147,7 @@ export default function BlamePanel({ shipment, leg, onClose }) {
             </div>
           )}
 
-          {/* Error — emoji kept intentionally */}
+          {/* Error */}
           {status === "error" && (
             <div className="blame-error">
               <div style={{ fontSize: 28, marginBottom: 8 }}>⚠️</div>

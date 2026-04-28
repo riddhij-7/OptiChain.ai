@@ -26,8 +26,8 @@ export default function App() {
         <div className="navbar-left">
           <div className="logo">
             <Link2 size={17} strokeWidth={2.2} className="logo-icon" />
-            <span className="logo-text">BlameChain</span>
-            <span className="logo-tag">Supply Intelligence</span>
+            <span className="logo-text">OptiChain.ai</span><br /> 
+            <span className="title-sub">Optimized intelligent supply chain</span>
           </div>
         </div>
 
