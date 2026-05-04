@@ -1,7 +1,7 @@
 
 const scriptedEvents = [
   {
-    delay_ms: 5000,
+    delay_ms: 1500,
     event: {
       shipment_id: "SH-003",
       leg_id: "SH-003-L2",

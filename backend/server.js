@@ -106,7 +106,7 @@ app.get("/", (req, res) => res.send("BlameChain backend running"));
 
 // --- Scripted demo ---
 function startDemoScript() {
-  console.log("\n[demo] Scripted events armed. Starting in 5 seconds...\n");
+  console.log("\n[demo] Scripted events armed. Starting in 1.5 seconds...\n");
   scriptedEvents.forEach(({ delay_ms, event }) => {
     const t = setTimeout(() => {
       console.log(`[demo] Firing event at t=${delay_ms / 1000}s`);
