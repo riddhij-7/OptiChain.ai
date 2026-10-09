@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+body {
+  background-color: #030712; /* gray-950 */
+  color: #f9fafb; /* gray-50 */
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}

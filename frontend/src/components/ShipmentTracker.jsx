@@ -14,86 +14,80 @@ const REASON_LABEL = {
   vendor_fault: "Vendor Fault",
 };
 
-const REASON_COLOR = {
-  breakdown:    "red",
-  customs:      "amber",
-  weather:      "blue",
-  vendor_fault: "red",
-};
-
 const REASON_ICON = {
-  breakdown:    <Truck        size={11} strokeWidth={2} />,
-  customs:      <FileX        size={11} strokeWidth={2} />,
-  weather:      <CloudLightning size={11} strokeWidth={2} />,
-  vendor_fault: <ShieldAlert  size={11} strokeWidth={2} />,
+  breakdown:    <Truck        size={14} strokeWidth={2} />,
+  customs:      <FileX        size={14} strokeWidth={2} />,
+  weather:      <CloudLightning size={14} strokeWidth={2} />,
+  vendor_fault: <ShieldAlert  size={14} strokeWidth={2} />,
 };
 
 const TYPE_ICON = {
-  sea:  <Ship  size={13} strokeWidth={1.7} />,
-  air:  <Plane size={13} strokeWidth={1.7} />,
-  road: <Truck size={13} strokeWidth={1.7} />,
+  sea:  <Ship  size={16} strokeWidth={1.7} />,
+  air:  <Plane size={16} strokeWidth={1.7} />,
+  road: <Truck size={16} strokeWidth={1.7} />,
 };
 
 function StatusDot({ status }) {
   const map = {
-    completed: "dot dot-green",
-    on_track:  "dot dot-green",
-    delayed:   "dot dot-red",
-    at_risk:   "dot dot-amber",
-    pending:   "dot dot-grey",
+    completed: "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]",
+    on_track:  "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]",
+    delayed:   "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]",
+    at_risk:   "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]",
+    pending:   "bg-gray-500",
   };
-  return <span className={map[status] || "dot dot-grey"} />;
+  return <span className={`w-2.5 h-2.5 rounded-full inline-block ${map[status] || map.pending}`} />;
 }
 
 function StatusBadge({ status }) {
   const map = {
-    completed: { label: "Completed", cls: "badge-green" },
-    on_track:  { label: "On Track",  cls: "badge-green" },
-    delayed:   { label: "Delayed",   cls: "badge-red" },
-    at_risk:   { label: "At Risk",   cls: "badge-amber" },
-    pending:   { label: "Pending",   cls: "badge-grey" },
+    completed: { label: "Completed", cls: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" },
+    on_track:  { label: "On Track",  cls: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" },
+    delayed:   { label: "Delayed",   cls: "bg-rose-500/10 text-rose-400 border border-rose-500/20" },
+    at_risk:   { label: "At Risk",   cls: "bg-amber-500/10 text-amber-400 border border-amber-500/20" },
+    pending:   { label: "Pending",   cls: "bg-gray-700/30 text-gray-400 border border-gray-700/50" },
   };
   const { label, cls } = map[status] || map.pending;
-  return <span className={`badge ${cls}`}>{label}</span>;
+  return <span className={`px-2 py-0.5 rounded text-xs font-medium ${cls}`}>{label}</span>;
 }
 
 function LegTimeline({ legs }) {
   return (
-    <div className="leg-timeline">
+    <div className="flex flex-col gap-0 ml-4 border-l border-gray-800">
       {legs.map((leg, i) => (
-        <div key={leg.leg_id} className="leg-item">
-          {i > 0 && (
-            <div className={`leg-connector ${
-              leg.status === "delayed" ? "connector-red" :
-              leg.status === "at_risk" ? "connector-amber" : "connector-grey"
-            }`} />
-          )}
-          <div className={`leg-node ${leg.status}`}>
-            <div className="leg-node-top">
-              <StatusDot status={leg.status} />
-              <span className="leg-seq">Leg {leg.sequence}</span>
-              <span className="leg-type-icon">
-                {TYPE_ICON[leg.type] ?? <Package size={13} strokeWidth={1.7} />}
-              </span>
-              <StatusBadge status={leg.status} />
+        <div key={leg.leg_id} className="relative pl-6 pb-6 last:pb-0">
+          <div className="absolute left-[-5px] top-1">
+            <StatusDot status={leg.status} />
+          </div>
+          <div className="bg-gray-900/40 rounded-xl p-4 border border-gray-800/50 hover:bg-gray-800/40 transition-colors">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <span className="text-gray-400 text-sm font-medium">Leg {leg.sequence}</span>
+                <span className="text-gray-500">
+                  {TYPE_ICON[leg.type] ?? <Package size={16} />}
+                </span>
+                <StatusBadge status={leg.status} />
+              </div>
               {leg.delay_hours && (
-                <span className="delay-badge" style={{ marginLeft: "auto" }}>
+                <span className="text-rose-400 font-semibold bg-rose-500/10 px-2 py-0.5 rounded text-sm">
                   +{leg.delay_hours}h
                 </span>
               )}
             </div>
-            <div className="leg-vendor">{leg.vendor_name}</div>
-            <div className="leg-route">{leg.origin} → {leg.destination}</div>
-            <div className="leg-eta">
-              ETA:&nbsp;
-              <span className={leg.status === "delayed" ? "text-red" : "text-sub"}>
+            <div className="text-white font-medium mb-1">{leg.vendor_name}</div>
+            <div className="text-gray-400 text-sm mb-2">{leg.origin} → {leg.destination}</div>
+            <div className="text-sm">
+              <span className="text-gray-500">ETA: </span>
+              <span className={leg.status === "delayed" ? "text-rose-400 font-medium" : "text-gray-300"}>
                 {new Date(leg.promised_eta).toLocaleDateString("en-GB", {
                   day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
                 })}
               </span>
             </div>
             {leg.delay_message && (
-              <div className="leg-delay-msg">{leg.delay_message}</div>
+              <div className="mt-3 text-sm text-amber-400/90 bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20 flex items-start gap-2">
+                 <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                 <span>{leg.delay_message}</span>
+              </div>
             )}
           </div>
         </div>
@@ -132,25 +126,24 @@ export default function ShipmentTracker() {
     : state.shipments;
 
   const filterDef = [
-    { key: "on_track", label: "On Track", color: "green" },
-    { key: "at_risk",  label: "At Risk",  color: "amber" },
-    { key: "delayed",  label: "Delayed",  color: "red"   },
+    { key: "on_track", label: "On Track", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30", active: "bg-emerald-500/20 border-emerald-500/50 ring-1 ring-emerald-500/50" },
+    { key: "at_risk",  label: "At Risk",  color: "text-amber-400 bg-amber-500/10 border-amber-500/30", active: "bg-amber-500/20 border-amber-500/50 ring-1 ring-amber-500/50" },
+    { key: "delayed",  label: "Delayed",  color: "text-rose-400 bg-rose-500/10 border-rose-500/30", active: "bg-rose-500/20 border-rose-500/50 ring-1 ring-rose-500/50" },
   ];
 
   return (
-    <div>
+    <div className="max-w-5xl mx-auto pb-12 text-white">
       {/* ── Page header ── */}
-      <div className="tracker-header">
-        <div className="tracker-header-left">
-          <h1 className="tracker-title">Shipment Tracker</h1>
-          <p className="tracker-sub">
+      <div className="flex justify-between items-end mb-8 border-b border-gray-800 pb-5">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Shipment Tracker</h1>
+          <p className="text-gray-400 text-sm mt-1">
             {state.shipments.length} active shipments
             {activeFilter && (
-              <span className="filter-active-label">
-                &nbsp;· filtered:{" "}
-                <strong>{filterDef.find((f) => f.key === activeFilter)?.label}</strong>
+              <span className="ml-2 pl-2 border-l border-gray-700">
+                filtered: <strong className="text-white">{filterDef.find((f) => f.key === activeFilter)?.label}</strong>
                 <button
-                  className="filter-clear-btn"
+                  className="ml-2 hover:text-white text-gray-500"
                   onClick={() => setActiveFilter(null)}
                 >
                   ✕
@@ -161,27 +154,28 @@ export default function ShipmentTracker() {
         </div>
 
         {/* Filter chips */}
-        <div className="filter-chips">
-          {filterDef.map(({ key, label, color }) => (
+        <div className="flex gap-3">
+          {filterDef.map(({ key, label, color, active }) => (
             <button
               key={key}
-              className={`filter-chip filter-chip-${color} ${
-                activeFilter === key ? "filter-chip-active" : ""
-              }`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
+                activeFilter === key ? active : color
+              } hover:opacity-80`}
               onClick={() => setActiveFilter(activeFilter === key ? null : key)}
-              title={`Filter: ${label}`}
             >
-              <span className="filter-chip-count">{counts[key]}</span>
-              <span className="filter-chip-label">{label}</span>
+              <span className="font-bold">{counts[key]}</span>
+              <span className="text-sm font-medium">{label}</span>
             </button>
           ))}
         </div>
       </div>
 
       {/* ── Shipment list ── */}
-      <div className="shipment-list">
+      <div className="space-y-4">
         {visibleShipments.length === 0 && (
-          <div className="empty-state">No shipments match this filter.</div>
+          <div className="text-center py-12 text-gray-500 bg-gray-900/30 rounded-xl border border-gray-800 border-dashed">
+            No shipments match this filter.
+          </div>
         )}
 
         {visibleShipments.map((s) => {
@@ -194,81 +188,75 @@ export default function ShipmentTracker() {
           return (
             <div
               key={s.id}
-              className={`shipment-card ${
-                isDelayed ? "shipment-delayed" : isAtRisk ? "shipment-atrisk" : ""
+              className={`rounded-xl border transition-all duration-300 overflow-hidden ${
+                isDelayed ? "bg-gray-900 border-rose-500/30 shadow-[0_4px_20px_-10px_rgba(244,63,94,0.3)]" : 
+                isAtRisk ? "bg-gray-900 border-amber-500/30" : 
+                "bg-gray-900/50 border-gray-800 hover:border-gray-700"
               }`}
             >
               {/* ── Card header ── */}
-              <div className="shipment-header" onClick={() => toggle(s.id)}>
-
+              <div 
+                className="flex items-center p-5 cursor-pointer hover:bg-gray-800/30 transition-colors"
+                onClick={() => toggle(s.id)}
+              >
                 {/* Col 1: Status + ID + Title */}
-                <div className="sh-col sh-col-id">
+                <div className="flex items-center gap-4 w-2/5">
                   <StatusDot status={cardStatus} />
-                  <div className="sh-id-block">
-                    <span className="sh-id">{s.id}</span>
-                    <span className="sh-title">{s.title}</span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-300">{s.id}</span>
+                    <span className="font-medium text-white truncate pr-4">{s.title}</span>
                   </div>
                 </div>
 
                 {/* Col 2: Route */}
-                <div className="sh-col sh-col-route">
-                  <span className="sh-origin">{s.origin}</span>
-                  <span className="sh-route-arrow">→</span>
-                  <span className="sh-dest">{s.destination}</span>
+                <div className="flex items-center gap-3 w-1/4 text-sm text-gray-400">
+                  <span className="truncate">{s.origin}</span>
+                  <span className="text-gray-600">→</span>
+                  <span className="truncate">{s.destination}</span>
                 </div>
 
                 {/* Col 3: Customer + Value */}
-                <div className="sh-col sh-col-meta">
-                  <span className="sh-customer">{s.customer}</span>
-                  <span className="sh-value">${s.total_value.toLocaleString()}</span>
+                <div className="flex flex-col w-1/5">
+                  <span className="text-sm text-gray-300 truncate">{s.customer}</span>
+                  <span className="text-xs text-emerald-400/90 font-medium">${s.total_value.toLocaleString()}</span>
                 </div>
 
                 {/* Col 4: Actions */}
-                <div className="sh-col sh-col-actions">
+                <div className="flex items-center justify-end gap-4 w-[15%]">
                   {worstLeg && isDelayed && (
                     <button
-                      className="blame-btn"
+                      className="flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded shadow-lg shadow-purple-500/20 transition-all"
                       onClick={(e) => {
                         e.stopPropagation();
                         setBlameTarget({ shipment: s, leg: worstLeg });
                       }}
                     >
-                      <Zap size={11} strokeWidth={2.5} />
-                      Analyze Blame
+                      <Zap size={13} strokeWidth={2.5} />
+                      AI Analysis
                     </button>
                   )}
-                  <StatusBadge status={cardStatus} />
-                  <span className="expand-icon">
-                    {isOpen
-                      ? <ChevronUp   size={14} strokeWidth={2} />
-                      : <ChevronDown size={14} strokeWidth={2} />}
-                  </span>
+                  {!isDelayed && <StatusBadge status={cardStatus} />}
+                  <div className="text-gray-500 ml-2">
+                    {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                  </div>
                 </div>
               </div>
 
               {/* ── Delay alert bar ── */}
               {isDelayed && worstLeg && (
-                <div className="delay-alert-bar">
-                  <span
-                    className="delay-reason-tag"
-                    style={{
-                      background: `var(--${REASON_COLOR[worstLeg.reason] ?? "red"}-dim)`,
-                      color: `var(--${REASON_COLOR[worstLeg.reason] ?? "red"})`,
-                    }}
-                  >
-                    <span className="delay-reason-icon">
-                      {REASON_ICON[worstLeg.reason] ?? <AlertTriangle size={11} />}
-                    </span>
+                <div className="px-5 py-3 bg-rose-500/5 border-t border-rose-500/10 flex items-center gap-4">
+                  <span className="flex items-center gap-1.5 bg-rose-500/10 text-rose-400 text-xs font-semibold px-2.5 py-1 rounded-md border border-rose-500/20">
+                    {REASON_ICON[worstLeg.reason] ?? <AlertTriangle size={12} />}
                     {REASON_LABEL[worstLeg.reason] ?? worstLeg.reason}
                   </span>
-                  <span className="delay-alert-msg">{worstLeg.delay_message}</span>
+                  <span className="text-sm text-gray-300">{worstLeg.delay_message}</span>
                 </div>
               )}
 
               {/* ── Expanded legs ── */}
               {isOpen && (
-                <div className="shipment-legs">
-                  <div className="section-title" style={{ marginBottom: 12 }}>
+                <div className="p-6 bg-gray-950/50 border-t border-gray-800/80">
+                  <div className="text-sm font-semibold text-gray-400 mb-6 uppercase tracking-wider">
                     Leg Breakdown
                   </div>
                   <LegTimeline legs={s.legs} />

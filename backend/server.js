@@ -1,14 +1,26 @@
 const express = require("express");
 const cors = require("cors");
+const dotenv = require("dotenv");
+const connectDB = require("./config/db");
+const authRoutes = require("./routes/authRoutes");
 const { scriptedEvents } = require("./webhook-events");
+
+dotenv.config();
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Open CORS — public demo, no auth tokens on these endpoints
-app.use(cors({ origin: "*", methods: ["GET", "POST"] }));
+// Open CORS
+app.use(cors({ origin: "*" }));
 
 app.use(express.json());
+
+// --- API Routes ---
+app.use("/api/auth", authRoutes);
+const analyzeRoutes = require("./routes/analyzeRoutes");
+app.use("/api/analyze", analyzeRoutes);
+
 
 // --- SSE client registry ---
 let clients = [];

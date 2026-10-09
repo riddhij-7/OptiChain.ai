@@ -2,21 +2,7 @@ import { useState } from "react";
 import { useApp } from "../context/AppContext";
 import VendorCard from "./VendorCard";
 import { runVendorAnalysis } from "../services/geminiService";
-
-const TIER_STYLE = {
-  RELIABLE:  { color: "var(--green)", bg: "var(--green-dim)", border: "rgba(82,183,136,0.3)" },
-  MONITOR:   { color: "var(--amber)", bg: "var(--amber-dim)", border: "rgba(244,162,97,0.3)",  icon: "⚠️" },
-  HIGH_RISK: { color: "var(--red)",   bg: "var(--red-dim)",   border: "rgba(230,57,70,0.3)" },
-};
-
-const ACTION_STYLE = {
-  CONTINUE:          { color: "var(--green)", label: "Continue" },
-  REVIEW_CONTRACT:   { color: "var(--amber)", label: "Review Contract" },
-  ESCALATE:          { color: "var(--red)",   label: "Escalate" },
-};
-
-const TREND_ICON = { IMPROVING: "↗", DECLINING: "↘", STABLE: "→" };
-const TREND_COLOR = { IMPROVING: "var(--green)", DECLINING: "var(--red)", STABLE: "var(--text-sub)" };
+import { ShieldCheck, AlertTriangle, FileText, Loader2, RefreshCw } from "lucide-react";
 
 export default function VendorScorecard() {
   const { state } = useApp();
@@ -48,112 +34,68 @@ export default function VendorScorecard() {
     aiResult?.vendors?.find((v) => v.id === vendorId);
 
   return (
-    <div>
+    <div className="max-w-6xl mx-auto pb-12 text-white">
       {/* ── Header ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+      <div className="flex justify-between items-start mb-8 border-b border-gray-800 pb-6">
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.3px" }}>Vendor Scorecards</h1>
-          <p style={{ color: "var(--text-sub)", fontSize: 13, marginTop: 2 }}>
+          <h1 className="text-2xl font-bold tracking-tight">Vendor Scorecards</h1>
+          <p className="text-gray-400 text-sm mt-1">
             {vendors.length} vendors · live blame tracking
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <div style={{ background: "var(--green-dim)", border: "1px solid rgba(82,183,136,0.2)", borderRadius: 8, padding: "6px 14px", textAlign: "center" }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--green)" }}>{avgOnTime}%</div>
-            <div style={{ fontSize: 10, color: "var(--text-dim)" }}>Avg On-Time</div>
+        <div className="flex gap-3 items-center">
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-2 text-center">
+            <div className="text-xl font-bold text-emerald-400">{avgOnTime}%</div>
+            <div className="text-[10px] uppercase tracking-wider text-emerald-500/80 font-semibold mt-0.5">Avg On-Time</div>
           </div>
-          <div style={{ background: flagged > 0 ? "var(--red-dim)" : "var(--bg-card)", border: `1px solid ${flagged > 0 ? "rgba(230,57,70,0.3)" : "var(--border)"}`, borderRadius: 8, padding: "6px 14px", textAlign: "center" }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: flagged > 0 ? "var(--red)" : "var(--text-dim)" }}>{flagged}</div>
-            <div style={{ fontSize: 10, color: "var(--text-dim)" }}>Red Flags</div>
+          <div className={`${flagged > 0 ? "bg-rose-500/10 border-rose-500/30" : "bg-gray-900 border-gray-800"} border rounded-xl px-4 py-2 text-center transition-colors`}>
+            <div className={`text-xl font-bold ${flagged > 0 ? "text-rose-400" : "text-gray-400"}`}>{flagged}</div>
+            <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mt-0.5">Red Flags</div>
           </div>
-          <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 14px", textAlign: "center" }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text)" }}>{totalIncidents}</div>
-            <div style={{ fontSize: 10, color: "var(--text-dim)" }}>Total Incidents</div>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-2 text-center">
+            <div className="text-xl font-bold text-gray-200">{totalIncidents}</div>
+            <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mt-0.5">Total Incidents</div>
           </div>
           <button
-  onClick={runAnalysis}
-  disabled={aiStatus === "loading"}
-  style={{
-    background:
-      aiStatus === "loading"
-        ? "var(--bg-hover)"
-        : "var(--blue)",
-
-    border: `1px solid ${
-      aiStatus === "loading"
-        ? "var(--border)"
-        : "var(--blue)"
-    }`,
-
-    color:
-      aiStatus === "loading"
-        ? "var(--text-dim)"
-        : "#ffffff",
-
-    fontSize: 12,
-    fontWeight: 600,
-    fontFamily: "var(--font)",
-    padding: "8px 14px",
-    borderRadius: 8,
-    cursor:
-      aiStatus === "loading"
-        ? "not-allowed"
-        : "pointer",
-
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    whiteSpace: "nowrap",
-    transition: "all .15s",
-  }}
->
-  {aiStatus === "loading" ? (
-    <>
-      <span
-        style={{
-          width: 12,
-          height: 12,
-          border: "2px solid rgba(255,255,255,0.35)",
-          borderTopColor: "#ffffff",
-          borderRadius: "50%",
-          display: "inline-block",
-          animation: "spin .7s linear infinite",
-        }}
-      />
-      Analyzing...
-    </>
-  ) : (
-    <>
-      {aiStatus === "done"
-        ? "Re-analyze"
-        : "AI Reliability Check"}
-    </>
-  )}
-</button>
+            onClick={runAnalysis}
+            disabled={aiStatus === "loading"}
+            className={`flex items-center gap-2 px-5 py-3 ml-2 rounded-xl text-sm font-bold transition-all shadow-lg ${
+              aiStatus === "loading"
+                ? "bg-gray-800 text-gray-400 cursor-not-allowed border border-gray-700"
+                : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/20"
+            }`}
+          >
+            {aiStatus === "loading" ? (
+              <><Loader2 size={16} className="animate-spin" /> Analyzing...</>
+            ) : (
+              <><ShieldCheck size={16} /> {aiStatus === "done" ? "Re-analyze" : "AI Reliability Check"}</>
+            )}
+          </button>
         </div>
       </div>
 
       {/* ── AI Fleet Health Banner ── */}
       {aiStatus === "done" && aiResult && (
-        <div style={{ background: "var(--blue-dim)", border: "1px solid rgba(72,149,239,0.25)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
-      
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 3 }}>AI Fleet Assessment</div>
-            <div style={{ fontSize: 13, color: "var(--text)" }}>{aiResult.fleet_health}</div>
+        <div className="bg-gradient-to-r from-blue-900/30 to-indigo-900/20 border border-blue-500/20 rounded-2xl p-5 mb-8 flex items-center gap-6 shadow-xl shadow-blue-900/5">
+          <div className="flex-1">
+            <div className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+              <ShieldCheck size={14} /> AI Fleet Assessment
+            </div>
+            <div className="text-sm text-gray-200 leading-relaxed font-medium">{aiResult.fleet_health}</div>
           </div>
-          <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
+          <div className="flex gap-4 border-l border-blue-500/20 pl-6 shrink-0">
             {aiResult.most_reliable && (
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 10, color: "var(--text-dim)", marginBottom: 2 }}>Most Reliable</div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--green)" }}>
+              <div className="text-center bg-gray-950/50 rounded-lg px-4 py-2 border border-gray-800/50">
+                <div className="text-[10px] uppercase tracking-wider text-gray-500 mb-1 font-semibold">Most Reliable</div>
+                <div className="text-sm font-bold text-emerald-400">
                   {vendors.find((v) => v.id === aiResult.most_reliable)?.name ?? aiResult.most_reliable}
                 </div>
               </div>
             )}
             {aiResult.highest_risk && (
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 10, color: "var(--text-dim)", marginBottom: 2 }}>Highest Risk</div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--red)" }}>
+              <div className="text-center bg-gray-950/50 rounded-lg px-4 py-2 border border-gray-800/50">
+                <div className="text-[10px] uppercase tracking-wider text-gray-500 mb-1 font-semibold">Highest Risk</div>
+                <div className="text-sm font-bold text-rose-400">
                   {vendors.find((v) => v.id === aiResult.highest_risk)?.name ?? aiResult.highest_risk}
                 </div>
               </div>
@@ -163,14 +105,17 @@ export default function VendorScorecard() {
       )}
 
       {aiStatus === "error" && (
-        <div style={{ background: "var(--red-dim)", border: "1px solid rgba(230,57,70,0.3)", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "var(--red)", display: "flex", alignItems: "center", gap: 8 }}>
-          ⚠️ AI analysis failed: {aiError}
-          <button onClick={runAnalysis} style={{ marginLeft: "auto", background: "none", border: "1px solid rgba(230,57,70,0.4)", color: "var(--red)", fontSize: 11, padding: "3px 10px", borderRadius: 5, cursor: "pointer" }}>Retry</button>
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-4 mb-8 text-sm text-rose-400 flex items-center gap-3">
+          <AlertTriangle size={18} />
+          <span className="font-medium">AI analysis failed: {aiError}</span>
+          <button onClick={runAnalysis} className="ml-auto bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-bold py-1.5 px-3 rounded-lg transition-colors flex items-center gap-1.5">
+            <RefreshCw size={12} /> Retry
+          </button>
         </div>
       )}
 
       {/* ── Vendor Cards Grid ── */}
-      <div className="vendor-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {vendors.map((v) => {
           const insight = getVendorInsight(v.id);
           return <VendorCard key={v.id} vendor={v} insight={insight} />;

@@ -1,21 +1,21 @@
 export default function IncidentLog({ incidents }) {
   const recent = incidents.slice(0, 3);
-  if (!recent.length) return <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 8 }}>No incidents</div>;
+  if (!recent.length) return <div className="text-xs text-gray-500 mt-2">No incidents</div>;
 
   return (
-    <div style={{ marginTop: 10 }}>
-      <div style={{ fontSize: 10, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: 6 }}>
+    <div className="mt-4">
+      <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-2 font-semibold">
         Recent Incidents
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <div className="flex flex-col gap-2">
         {recent.map((inc) => (
-          <div key={inc.id} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 6, padding: "6px 8px", fontSize: 11 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-              <span style={{ fontFamily: "monospace", color: "var(--text-dim)", fontSize: 10 }}>{inc.id}</span>
-              {inc.vendor_fault && <span style={{ background: "var(--red-dim)", color: "var(--red)", fontSize: 9, fontWeight: 600, padding: "1px 5px", borderRadius: 3 }}>FAULT</span>}
-              <span style={{ marginLeft: "auto", color: "var(--red)", fontWeight: 600 }}>+{inc.delay_hours}h</span>
+          <div key={inc.id} className="bg-gray-950/50 border border-gray-800/80 rounded-lg p-2 text-xs hover:border-gray-700 transition-colors">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-mono text-[10px] text-gray-500">{inc.id}</span>
+              {inc.vendor_fault && <span className="bg-rose-500/10 text-rose-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-rose-500/20">FAULT</span>}
+              <span className="ml-auto text-rose-400 font-bold">+{inc.delay_hours}h</span>
             </div>
-            <div style={{ color: "var(--text-sub)", fontSize: 10 }}>{inc.leg}</div>
+            <div className="text-[10px] text-gray-400 truncate">{inc.leg}</div>
           </div>
         ))}
       </div>
